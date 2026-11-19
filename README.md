@@ -6,7 +6,7 @@ Mining is stopped until the user confirms `start`. USB insertion does not run pr
 
 ## Quick start guide
 
-Follow the [Russian step-by-step guide](https://thetimkol.github.io/geocoin-portable-miner/) to prepare a GeoCoin wallet, start and sync a node, configure miner-role RPC, and run this portable miner. The page source and credits are in [`docs/`](docs/).
+Follow the [Russian step-by-step guide](docs/README.md) to prepare a GeoCoin wallet, start and sync a node, configure miner-role RPC, and run this portable miner. The interactive page source is [`docs/index.html`](docs/index.html); open it in a browser to use the checklist.
 
 ## Requirements
 
