@@ -8,6 +8,10 @@ Mining is stopped until the user confirms `start`. USB insertion does not run pr
 
 Open the [interactive Russian quick-start guide](https://thetimkol.github.io/geocoin-portable-miner/) to prepare a GeoCoin wallet, start and sync a node, configure miner-role RPC, and run this portable miner. The [text version](docs/README.md) and the [page source](docs/index.html) are also available in this repository.
 
+## GeoCoin-Start for Windows
+
+The Russian desktop installer and simplified client are in [`installer/GeoCoinStart`](installer/GeoCoinStart). The one-file self-contained EXE downloads the official GeoCoin Windows package directly from the author's release, verifies its pinned SHA-256, then provides four sections: overview, CPU mining, send, and receive. It keeps wallet data in the user's Local AppData folder. See the [installer notes](installer/GeoCoinStart/README.md) for the current scope and build instructions.
+
 ## Requirements
 
 - Java 21 or newer to run the JAR
