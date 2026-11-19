@@ -4,6 +4,10 @@ Portable Windows CPU miner for GeoCoin. Keep the application, config, and logs o
 
 Mining is stopped until the user confirms `start`. USB insertion does not run programs automatically on Windows. This MVP does not install a background component or scheduled task.
 
+## Quick start guide
+
+Follow the [Russian step-by-step guide](https://thetimkol.github.io/geocoin-portable-miner/) to prepare a GeoCoin wallet, start and sync a node, configure miner-role RPC, and run this portable miner. The page source and credits are in [`docs/`](docs/).
+
 ## Requirements
 
 - Java 21 or newer to run the JAR

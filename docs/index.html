@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111c20">
+  <meta name="description" content="Неофициальный русскоязычный помощник: кошелёк, нода GeoCoin и ваш CPU/OpenCL-майнер по шагам.">
+  <title>GeoCoin · Пошаговый запуск</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #152326;
+      --muted: #738083;
+      --line: #e2e9e5;
+      --paper: #f5f7f2;
+      --card: #fff;
+      --forest: #1d4b3c;
+      --forest-dark: #12392e;
+      --lime: #c7ef72;
+      --gold: #f2c96b;
+      --blue: #a9caff;
+      --sidebar: #111c20;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); }
+    a { color: inherit; }
+    button { color: inherit; font: inherit; }
+    .shell { min-height: 100vh; }
+    .sidebar {
+      position: fixed; inset: 0 auto 0 0; z-index: 5; display: flex; flex-direction: column;
+      width: 248px; padding: 24px 18px 18px; color: #f1f6ef; background: var(--sidebar);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 6px; text-decoration: none; }
+    .brand-mark { display: grid; place-items: center; width: 37px; height: 37px; color: #13231d; border-radius: 12px; background: var(--lime); }
+    .brand-mark svg { width: 21px; height: 21px; }
+    .brand-name { font-size: 15px; font-weight: 760; letter-spacing: -.3px; }
+    .brand-sub { margin-top: 2px; color: #9aa8a3; font-size: 10px; letter-spacing: .095em; text-transform: uppercase; }
+    .side-label { margin: 41px 9px 12px; color: #7e8b86; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .step-nav { display: grid; gap: 5px; }
+    .step-nav a { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 10px; color: #b7c2bc; text-decoration: none; border-radius: 10px; font-size: 12px; transition: .2s ease; }
+    .step-nav a:hover, .step-nav a.active { color: #fff; background: #23332f; }
+    .nav-num { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid #43524d; border-radius: 8px; color: #91a099; font-size: 10px; font-weight: 700; }
+    .step-nav a.done .nav-num { border-color: var(--lime); color: var(--sidebar); background: var(--lime); }
+    .nav-progress { margin: auto 7px 20px; padding: 14px 13px; border: 1px solid #2d3a37; border-radius: 12px; background: #182522; }
+    .nav-progress-head { display: flex; justify-content: space-between; color: #dce6de; font-size: 11px; font-weight: 650; }
+    .nav-progress-head span:last-child { color: var(--lime); }
+    .progress-track { height: 4px; margin-top: 11px; overflow: hidden; border-radius: 9px; background: #35433e; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--lime); transition: width .3s ease; }
+    .side-credit { padding: 14px 8px 0; border-top: 1px solid #293633; color: #9ca9a3; font-size: 10px; line-height: 1.65; }
+    .side-credit a { color: #d7e6db; text-decoration-color: #65756e; text-underline-offset: 3px; }
+    .side-credit .distributor { display: inline-block; margin-top: 8px; color: var(--lime); font-size: 11px; font-weight: 700; }
+    .main { min-height: 100vh; margin-left: 248px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; max-width: 1440px; height: 64px; margin: 0 auto; padding: 0 38px; border-bottom: 1px solid #e8ede8; }
+    .crumb { color: #8a9692; font-size: 11px; }
+    .crumb strong { color: #34423e; font-weight: 650; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .source-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 11px; border: 1px solid #dce5dd; border-radius: 9px; background: #fff; color: #34463f; text-decoration: none; font-size: 10px; font-weight: 700; transition: .2s; }
+    .source-link:hover { border-color: #adc7b3; background: #f9fcf8; }
+    .source-link svg { width: 13px; height: 13px; }
+    .content { max-width: 1200px; margin: 0 auto; padding: 34px 38px 60px; }
+    .hero { position: relative; display: grid; grid-template-columns: 1.25fr .75fr; min-height: 258px; overflow: hidden; border-radius: 19px; background: var(--forest); color: #f8fff4; }
+    .hero-copy { position: relative; z-index: 1; padding: 31px 34px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 7px; color: #d2e7d7; font-size: 10px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 4px #a7d55b25; }
+    h1 { max-width: 610px; margin: 17px 0 10px; font-size: clamp(29px, 3.4vw, 42px); line-height: 1.08; letter-spacing: -1.7px; }
+    .hero-copy p { max-width: 470px; margin: 0; color: #d2e4d6; font-size: 13px; line-height: 1.7; }
+    .hero-actions { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+    .primary-link { display: inline-flex; align-items: center; gap: 9px; padding: 10px 14px; border: 0; border-radius: 9px; color: #18251d; background: var(--lime); text-decoration: none; font-size: 11px; font-weight: 760; transition: transform .2s; }
+    .primary-link:hover { transform: translateY(-1px); }
+    .primary-link svg { width: 14px; height: 14px; }
+    .hero-note { color: #c2d7ca; font-size: 10px; }
+    .hero-art { position: relative; min-height: 255px; }
+    .hero-art::before { position: absolute; content: ""; width: 265px; height: 265px; top: 8px; left: 25px; border: 1px solid #d6e9d325; border-radius: 50%; box-shadow: 0 0 0 22px #d6e9d310, 0 0 0 49px #d6e9d30a; }
+    .geo-grid { position: absolute; top: 34px; left: 71px; width: 184px; height: 184px; opacity: .92; transform: rotate(-8deg); }
+    .hero-art-tag { position: absolute; right: 28px; bottom: 22px; padding: 10px 12px; border: 1px solid #d8e9dc35; border-radius: 11px; background: #173d31; box-shadow: 0 12px 32px #0f261e40; }
+    .hero-art-tag strong { display: block; color: var(--lime); font-size: 17px; letter-spacing: -.4px; }
+    .hero-art-tag span { color: #c7dbce; font-size: 9px; }
+    .overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 27px; }
+    .overview-card { display: flex; align-items: center; gap: 12px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .overview-icon { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 10px; background: #eff4e8; color: #41634b; }
+    .overview-icon.gold { background: #fbf3df; color: #8f6a20; }
+    .overview-icon.blue { background: #eaf1fb; color: #466994; }
+    .overview-icon svg { width: 16px; height: 16px; }
+    .overview-card strong { display: block; font-size: 11px; font-weight: 750; }
+    .overview-card span { display: block; margin-top: 3px; color: #81908a; font-size: 9px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; margin: 0 2px 12px; }
+    .section-kicker { color: #75867d; font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h2 { margin: 5px 0 0; font-size: 20px; letter-spacing: -.55px; }
+    .saved-note { color: #86938e; font-size: 10px; }
+    .steps { display: grid; gap: 10px; }
+    .step-card { scroll-margin-top: 18px; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--card); box-shadow: 0 2px 4px #10271b05; transition: border-color .2s, box-shadow .2s; }
+    .step-card:focus-within, .step-card.active { border-color: #bdd3be; box-shadow: 0 4px 16px #1e4b3d0a; }
+    .step-head { display: flex; align-items: flex-start; gap: 13px; padding: 16px 18px 13px; }
+    .step-number { display: grid; flex: 0 0 31px; place-items: center; width: 31px; height: 31px; border-radius: 10px; color: #44634c; background: #edf3e7; font-family: var(--mono); font-size: 10px; font-weight: 800; }
+    .step-card.complete .step-number { color: #fff; background: var(--forest); }
+    .step-title-wrap { flex: 1; min-width: 0; }
+    .step-titleline { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .step-titleline h3 { margin: 1px 0 0; font-size: 14px; letter-spacing: -.2px; }
+    .step-time { padding: 4px 7px; border-radius: 6px; color: #72817b; background: #f3f6f2; font-size: 9px; font-weight: 650; }
+    .step-head p { margin: 5px 0 0; color: #76847e; font-size: 10px; line-height: 1.6; }
+    .step-body { padding: 0 18px 17px 62px; }
+    .tip { margin-bottom: 11px; padding: 10px 12px; border-left: 2px solid #dfbf67; border-radius: 0 8px 8px 0; color: #6e613b; background: #fbf7e9; font-size: 10px; line-height: 1.6; }
+    .tip strong { color: #4d4327; }
+    .tip.green { border-color: #82bb8f; color: #506c57; background: #f0f7ee; }
+    .tip.red { border-color: #dc9d84; color: #835444; background: #fff5f0; }
+    .choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .choice { display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #dfe7e0; border-radius: 8px; background: #fff; color: #55645d; text-decoration: none; font-size: 10px; font-weight: 650; transition: .2s; }
+    .choice:hover { border-color: #b7ccb9; background: #f8fbf6; }
+    .choice svg { width: 13px; height: 13px; }
+    .text-link { color: #29634e; font-size: 10px; font-weight: 700; text-decoration-color: #b2cdb7; text-underline-offset: 3px; }
+    .cmd-label { display: flex; align-items: center; justify-content: space-between; margin: 10px 0 6px; color: #6c7d74; font-size: 9px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .codebox { position: relative; overflow: hidden; border: 1px solid #263430; border-radius: 9px; background: #172420; }
+    .codebox pre { overflow: auto; margin: 0; padding: 13px 88px 13px 13px; color: #e2ece4; font-family: var(--mono); font-size: 10px; line-height: 1.7; white-space: pre; }
+    .codebox code { font: inherit; }
+    .code-accent { color: #c5ec7b; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 5px; padding: 6px 8px; border: 1px solid #46564e; border-radius: 6px; color: #d8e7dc; background: #24342d; cursor: pointer; font-size: 9px; font-weight: 700; }
+    .copy-btn:hover { border-color: #9cbf8e; }
+    .copy-btn svg { width: 12px; height: 12px; }
+    .substep { display: flex; align-items: flex-start; gap: 9px; margin: 9px 0 0; color: #52605a; font-size: 10px; line-height: 1.6; }
+    .substep .check-icon { display: grid; flex: 0 0 16px; place-items: center; width: 16px; height: 16px; margin-top: 1px; border: 1px solid #cbd7cc; border-radius: 5px; color: #52705a; background: #f7faf6; font-size: 9px; }
+    .substep strong { color: #33483b; }
+    .inline-code { padding: 2px 4px; border-radius: 4px; color: #395747; background: #edf3ec; font-family: var(--mono); font-size: 9px; }
+    details { margin-top: 11px; }
+    summary { color: #35644e; cursor: pointer; font-size: 10px; font-weight: 700; }
+    details .cmd-label { margin-top: 10px; }
+    .checkline { display: flex; align-items: center; gap: 9px; width: fit-content; margin: 12px 0 0; color: #4d6155; cursor: pointer; font-size: 10px; font-weight: 650; user-select: none; }
+    .checkline input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    .checkbox { display: grid; place-items: center; width: 17px; height: 17px; border: 1.5px solid #bdcbbf; border-radius: 5px; background: #fff; }
+    .checkbox svg { width: 11px; height: 11px; opacity: 0; }
+    .checkline input:checked + .checkbox { border-color: var(--forest); color: #fff; background: var(--forest); }
+    .checkline input:checked + .checkbox svg { opacity: 1; }
+    .checkline input:focus-visible + .checkbox { outline: 3px solid #98bb9a80; outline-offset: 2px; }
+    .success-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px; margin-top: 14px; padding: 16px 18px; border: 1px solid #d8e6d5; border-radius: 13px; background: #edf5e8; }
+    .success-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; color: #315d3f; background: #d9ebce; }
+    .success-icon svg { width: 17px; height: 17px; }
+    .success-card strong { display: block; color: #294637; font-size: 11px; }
+    .success-card p { margin: 4px 0 0; color: #647b69; font-size: 9px; line-height: 1.5; }
+    .success-card a { color: #356449; font-size: 9px; font-weight: 750; text-underline-offset: 3px; white-space: nowrap; }
+    .resource-panel { display: grid; grid-template-columns: 1.1fr .9fr; gap: 11px; margin-top: 24px; }
+    .resource-card { padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .resource-card h3 { margin: 0 0 10px; font-size: 11px; }
+    .resource-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 12px; }
+    .resource-list a { display: flex; justify-content: space-between; gap: 9px; padding: 6px 0; color: #596a61; text-decoration: none; font-size: 9px; }
+    .resource-list a:hover { color: #1f5a43; }
+    .resource-list a span:last-child { color: #91a098; }
+    .credit-card { display: flex; flex-direction: column; justify-content: center; padding: 17px; border: 1px solid #dfe8db; border-radius: 12px; background: #f0f5ec; }
+    .credit-label { color: #849288; font-size: 9px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+    .credit-card strong { margin-top: 5px; color: #31503b; font-size: 13px; }
+    .credit-card a { width: fit-content; margin-top: 6px; color: #536a58; font-size: 10px; text-underline-offset: 3px; }
+    .credit-divider { height: 1px; margin: 12px 0; background: #dbe5d8; }
+    .credit-card .distributor-name { color: #4f6e42; }
+    .credit-card .distributor-link { color: #3b6541; font-weight: 750; }
+    .footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 0 2px; color: #87938d; font-size: 9px; line-height: 1.6; }
+    .footer a { color: #667c6c; text-underline-offset: 3px; }
+    .toast { position: fixed; z-index: 10; right: 22px; bottom: 22px; padding: 10px 14px; border-radius: 9px; color: #fff; background: #182620; box-shadow: 0 12px 28px #10201630; font-size: 11px; opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-brand { display: none; }
+    @media (max-width: 980px) {
+      .sidebar { width: 215px; }
+      .main { margin-left: 215px; }
+      .content { padding-right: 24px; padding-left: 24px; }
+      .topbar { padding: 0 24px; }
+      .hero { grid-template-columns: 1.2fr .8fr; }
+      .hero-art::before { left: -1px; }
+      .geo-grid { left: 43px; }
+      .hero-art-tag { right: 12px; }
+    }
+    @media (max-width: 760px) {
+      .sidebar { position: sticky; top: 0; inset: auto; width: auto; height: auto; padding: 10px 14px; border-bottom: 1px solid #2b3935; }
+      .brand { width: fit-content; }
+      .brand-mark { width: 31px; height: 31px; border-radius: 9px; }
+      .brand-name { font-size: 13px; }
+      .brand-sub { font-size: 8px; }
+      .side-label, .nav-progress, .side-credit { display: none; }
+      .step-nav { display: flex; gap: 4px; margin-top: 9px; overflow: auto; scrollbar-width: none; }
+      .step-nav::-webkit-scrollbar { display: none; }
+      .step-nav a { flex: 0 0 auto; gap: 6px; min-height: 31px; padding: 0 8px; font-size: 9px; white-space: nowrap; }
+      .nav-num { width: 18px; height: 18px; border-radius: 6px; font-size: 8px; }
+      .main { margin-left: 0; }
+      .topbar { height: 50px; padding: 0 15px; }
+      .crumb { font-size: 9px; }
+      .source-link { padding: 7px 8px; font-size: 9px; }
+      .source-link svg { display: none; }
+      .content { padding: 18px 14px 35px; }
+      .hero { grid-template-columns: 1fr; min-height: unset; }
+      .hero-copy { padding: 24px 21px 21px; }
+      h1 { margin-top: 13px; font-size: 31px; }
+      .hero-copy p { font-size: 11px; }
+      .hero-actions { margin-top: 16px; }
+      .hero-art { position: absolute; top: -24px; right: -90px; width: 220px; height: 220px; min-height: 0; opacity: .24; pointer-events: none; }
+      .hero-art::before { top: 0; left: 0; width: 220px; height: 220px; }
+      .geo-grid { top: 28px; left: 25px; width: 160px; height: 160px; }
+      .hero-art-tag { display: none; }
+      .overview { gap: 7px; margin: 11px 0 22px; }
+      .overview-card { align-items: flex-start; gap: 7px; padding: 9px 8px; }
+      .overview-icon { width: 26px; height: 26px; border-radius: 8px; }
+      .overview-icon svg { width: 13px; height: 13px; }
+      .overview-card strong { font-size: 9px; }
+      .overview-card span { font-size: 8px; }
+      .section-head { align-items: flex-start; gap: 8px; }
+      h2 { font-size: 18px; }
+      .saved-note { max-width: 100px; text-align: right; font-size: 8px; }
+      .step-head { gap: 10px; padding: 13px 12px 10px; }
+      .step-number { flex-basis: 27px; width: 27px; height: 27px; border-radius: 8px; }
+      .step-titleline h3 { font-size: 12px; }
+      .step-head p { font-size: 9px; }
+      .step-body { padding: 0 12px 14px 49px; }
+      .codebox pre { padding-right: 74px; font-size: 9px; }
+      .copy-btn { font-size: 8px; }
+      .resource-panel { grid-template-columns: 1fr; margin-top: 19px; }
+      .resource-list { grid-template-columns: 1fr 1fr; }
+      .footer { flex-direction: column; gap: 5px; }
+    }
+    @media (max-width: 400px) {
+      .overview-card { display: block; }
+      .overview-card > div:last-child { margin-top: 5px; }
+      .hero-actions { align-items: flex-start; flex-direction: column; gap: 8px; }
+      .success-card { grid-template-columns: auto 1fr; }
+      .success-card a { grid-column: 2; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Навигация по инструкции">
+      <a class="brand" href="#top" aria-label="GeoCoin — быстрый старт">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.6 21.1 8v8L12 21.4 2.9 16V8L12 2.6Z" stroke="currentColor" stroke-width="1.8"/><path d="m7 9.4 5-3 5 3v5.2l-5 3-5-3V9.4Z" stroke="currentColor" stroke-width="1.5"/><path d="m7.2 9.5 4.8 3 4.8-3M12 12.5v5" stroke="currentColor" stroke-width="1.4"/></svg>
+        </span>
+        <span><span class="brand-name">GeoCoin</span><span class="brand-sub">быстрый старт</span></span>
+      </a>
+      <div class="side-label">Путь майнера</div>
+      <nav class="step-nav">
+        <a href="#step-1" data-nav="step-1"><span class="nav-num">01</span><span>Подготовка</span></a>
+        <a href="#step-2" data-nav="step-2"><span class="nav-num">02</span><span>Кошелёк</span></a>
+        <a href="#step-3" data-nav="step-3"><span class="nav-num">03</span><span>Нода и RPC</span></a>
+        <a href="#step-4" data-nav="step-4"><span class="nav-num">04</span><span>Синхронизация</span></a>
+        <a href="#step-5" data-nav="step-5"><span class="nav-num">05</span><span>Майнинг</span></a>
+      </nav>
+      <div class="nav-progress" aria-live="polite">
+        <div class="nav-progress-head"><span>Ваш прогресс</span><span id="progress-count">0 / 5</span></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+      <div class="side-credit">
+        Неофициальный помощник сообщества.<br>
+        Оригинальный проект — <a href="https://github.com/NoemaCrypt/GeoCoin" target="_blank" rel="noopener noreferrer">NoemaCrypt</a>.
+        <a class="distributor" href="https://t.me/TheTimkol" target="_blank" rel="noopener noreferrer">Редистрибьютор ↗</a>
+      </div>
+    </aside>
+
+    <main class="main" id="top">
+      <header class="topbar">
+        <div class="crumb">Сообщество <span aria-hidden="true">/</span> <strong>Пошаговый запуск</strong></div>
+        <div class="top-actions">
+          <a class="source-link" href="https://github.com/NoemaCrypt/GeoCoin" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 19c-4.3 1.4-4.3-2.1-6-2.6m12 5v-3.3a2.9 2.9 0 0 0-.8-2.3c2.7-.3 5.6-1.3 5.6-6A4.7 4.7 0 0 0 18.5 6a4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.7 11.7 0 0 0-6.1 0C6.5 2.5 5.5 2.8 5.5 2.8A4.3 4.3 0 0 0 5.4 6a4.7 4.7 0 0 0-1.3 3.8c0 4.7 2.9 5.7 5.6 6a2.9 2.9 0 0 0-.8 2.3v3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Оригинальный репозиторий
+          </a>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="eyebrow-dot"></span>Неофициальный русскоязычный гид</div>
+            <h1 id="hero-title">От кошелька<br>до первого хешрейта</h1>
+            <p>Пять коротких шагов: подготовить адрес, запустить ноду, проверить синхронизацию и подключить майнер. Отмечайте выполненное по ходу.</p>
+            <div class="hero-actions">
+              <a class="primary-link" href="#step-1">Начать настройку <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+              <span class="hero-note">Windows 10/11 · основная сеть</span>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <svg class="geo-grid" viewBox="0 0 200 200" fill="none">
+              <path d="m100 10 76 44v92l-76 44-76-44V54l76-44Z" stroke="#e1f0df" stroke-opacity=".55" stroke-width="1.3"/>
+              <path d="m100 36 54 31v62l-54 31-54-31V67l54-31Z" stroke="#e1f0df" stroke-opacity=".75" stroke-width="1.3"/>
+              <path d="m100 62 31 18v40l-31 18-31-18V80l31-18Z" fill="#c8ee75" fill-opacity=".92" stroke="#e8f4d3" stroke-width="1.3"/>
+              <path d="m24 54 76 44 76-44M24 146l76-44 76 44M100 10v180" stroke="#e1f0df" stroke-opacity=".45" stroke-width="1.2"/>
+              <circle cx="100" cy="100" r="6" fill="#224c3d"/>
+              <circle cx="100" cy="10" r="3" fill="#c8ee75"/><circle cx="176" cy="54" r="3" fill="#c8ee75"/><circle cx="24" cy="146" r="3" fill="#c8ee75"/>
+            </svg>
+            <div class="hero-art-tag"><strong>01 → 05</strong><span>понятная последовательность</span></div>
+          </div>
+        </section>
+
+        <div class="overview" aria-label="Кратко о руководстве">
+          <div class="overview-card"><div class="overview-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="17" r="2" stroke="currentColor" stroke-width="1.7"/></svg></div><div><strong>5 последовательных шагов</strong><span>От файла сборки до майнера</span></div></div>
+          <div class="overview-card"><div class="overview-icon gold"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8 8 10 4.6-2 8-5 8-10V6l-8-3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><strong>RPC остаётся локальным</strong><span>Подсказки по безопасному доступу</span></div></div>
+          <div class="overview-card"><div class="overview-icon blue"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5m0 14h14M8 15l3-4 3 2 5-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="6" r="1.7" fill="currentColor"/></svg></div><div><strong>Без ложного статуса</strong><span>Нода показывает реальную синхронизацию</span></div></div>
+        </div>
+
+        <div class="section-head">
+          <div><div class="section-kicker">Ваш маршрут</div><h2>Пройдите шаги по порядку</h2></div>
+          <div class="saved-note">Отметки хранятся в этом браузере</div>
+        </div>
+
+        <section class="steps" aria-label="Пошаговая настройка">
+          <article class="step-card" id="step-1" data-step="1">
+            <div class="step-head">
+              <div class="step-number">01</div>
+              <div class="step-title-wrap"><div class="step-titleline"><h3>Возьмите официальную сборку</h3><span class="step-time">Перед запуском</span></div><p>Проверьте страницу релизов GeoCoin. Если пользовательского архива пока нет, сборка описана в официальном руководстве.</p></div>
+            </div>
+            <div class="step-body">
+              <div class="tip"><strong>Важно:</strong> скачивайте ноду и кошелёк из официального GeoCoin. Проверяйте страницу Releases: если готовой сборки нет, в руководстве есть команды сборки. Этот маршрут рассчитан на Windows 10/11 x64 и ваш portable-майнер.</div>
+              <div class="choice-row">
+                <a class="choice" href="https://github.com/NoemaCrypt/GeoCoin/releases" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Открыть релизы</a>
+                <a class="choice" href="https://github.com/NoemaCrypt/GeoCoin/blob/main/docs/build-and-run.md" target="_blank" rel="noopener noreferrer">Руководство по сборке ↗</a>
+              </div>
+              <div class="substep"><span class="check-icon">✓</span><span>Не распаковывайте новую версию поверх папки с данными кошелька или ноды.</span></div>
+              <label class="checkline"><input type="checkbox" data-check="step-1"><span class="checkbox"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Сборка из официального источника готова</span></label>
+            </div>
+          </article>
+
+          <article class="step-card" id="step-2" data-step="2">
+            <div class="step-head">
+              <div class="step-number">02</div>
+              <div class="step-title-wrap"><div class="step-titleline"><h3>Подготовьте кошелёк и адрес награды</h3><span class="step-time">Один раз</span></div><p>Откройте GeoCoin Core, создайте кошелёк и скопируйте адрес, который укажете майнеру.</p></div>
+            </div>
+            <div class="step-body">
+              <div class="tip green">В обычном режиме <strong>geocoin-core запускает собственную локальную ноду</strong>. Сохраните доступ к кошельку и резервную копию по официальной инструкции. Когда будете переходить к отдельной ноде для RPC-майнинга, закройте окно кошелька.</div>
+              <div class="cmd-label"><span>Запуск кошелька</span><span id="wallet-caption">Windows · portable</span></div>
+              <div class="codebox"><pre><code data-code="wallet">.\bin\geocoin-core.exe</code></pre><button class="copy-btn" type="button" data-copy="wallet"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.7"/></svg>Копировать</button></div>
+              <div class="substep"><span class="check-icon">✓</span><span>Скопируйте адрес для получения награды. Сделайте резервную копию кошелька и храните её отдельно вместе с паролем. Не отправляйте кому-либо пароль или файлы кошелька.</span></div>
+              <label class="checkline"><input type="checkbox" data-check="step-2"><span class="checkbox"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Кошелёк готов, адрес сохранён, окно закрыто</span></label>
+            </div>
+          </article>
+
+          <article class="step-card" id="step-3" data-step="3">
+            <div class="step-head">
+              <div class="step-number">03</div>
+              <div class="step-title-wrap"><div class="step-titleline"><h3>Запустите ноду с доступом для майнера</h3><span class="step-time">Только localhost</span></div><p>Для внешнего CPU/GPU-майнера ноде нужны включённый RPC и отдельные учётные данные майнера.</p></div>
+            </div>
+            <div class="step-body">
+              <div class="tip red"><strong>Не открывайте RPC в интернет.</strong> Оставьте привязку к <span class="inline-code">127.0.0.1</span>. Создайте два пароля: отдельный для администратора и второй для майнера. Запомните пароль miner: тот же пароль понадобится portable-майнеру.</div>
+              <details>
+                <summary>Показать, как создать файлы паролей</summary>
+                <div class="cmd-label"><span>Windows · PowerShell</span></div>
+                <div class="codebox"><pre><code data-code="passwords-win">$rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+$adminBytes = New-Object byte[] 32
+$minerBytes = New-Object byte[] 32
+$rng.GetBytes($adminBytes)
+$rng.GetBytes($minerBytes)
+$admin = [Convert]::ToBase64String($adminBytes)
+$miner = [Convert]::ToBase64String($minerBytes)
+Set-Content -NoNewline .\rpc-admin.pass $admin
+Set-Content -NoNewline .\rpc-miner.pass $miner</code></pre><button class="copy-btn" type="button" data-copy="passwords-win"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.7"/></svg>Копировать</button></div>
+                <p class="substep"><span class="check-icon">i</span><span>Создайте файлы в папке ноды. Позже сохраните тот же пароль miner в <span class="inline-code">rpc-miner.pass</span> рядом с portable-майнером. Не публикуйте эти файлы.</span></p>
+              </details>
+              <div class="cmd-label"><span>Команда запуска ноды</span><span>Windows · основная сеть</span></div>
+              <div class="codebox"><pre><code data-code="node">.\geocoin-node.cmd --data-dir .\data --network degree --rpc --rpc-bind 127.0.0.1 --rpc-user admin --rpc-pass-file .\rpc-admin.pass --rpc-miner-user miner --rpc-miner-pass-file .\rpc-miner.pass</code></pre><button class="copy-btn" type="button" data-copy="node"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.7"/></svg>Копировать</button></div>
+              <div class="substep"><span class="check-icon">✓</span><span>Параметр <span class="inline-code">--network degree</span> запускает основную сеть. Для тестовой сети используйте отдельную папку данных и её manifest из официального репозитория.</span></div>
+              <label class="checkline"><input type="checkbox" data-check="step-3"><span class="checkbox"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Нода запущена, RPC ограничен локальным компьютером</span></label>
+            </div>
+          </article>
+
+          <article class="step-card" id="step-4" data-step="4">
+            <div class="step-head">
+              <div class="step-number">04</div>
+              <div class="step-title-wrap"><div class="step-titleline"><h3>Дождитесь полной синхронизации</h3><span class="step-time">Зависит от сети</span></div><p>Пока нода догоняет сеть, майнер ещё рано запускать. Оставьте окно ноды открытым.</p></div>
+            </div>
+            <div class="step-body">
+              <div class="substep"><span class="check-icon">1</span><span>В логах ноды появляются подключения к пирам и новые блоки.</span></div>
+              <div class="substep"><span class="check-icon">2</span><span>Высота локальной цепочки перестала отставать и продолжает обновляться.</span></div>
+              <div class="substep"><span class="check-icon">3</span><span>Для диагностики используйте RPC-метод <span class="inline-code">getmininginfo</span> и официальную справку.</span></div>
+              <div class="tip green" style="margin-top:11px"><strong>Порядок:</strong> окно ноды должно работать всё время, пока запущен майнер. Если останавливаете компьютер, сначала завершите майнер.</div>
+              <label class="checkline"><input type="checkbox" data-check="step-4"><span class="checkbox"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Синхронизация завершена, сеть и высота проверены</span></label>
+            </div>
+          </article>
+
+          <article class="step-card" id="step-5" data-step="5">
+            <div class="step-head">
+              <div class="step-number">05</div>
+              <div class="step-title-wrap"><div class="step-titleline"><h3>Настройте и запустите GeoCoin Portable Miner</h3><span class="step-time">Старт только после подтверждения</span></div><p>Подключите ваш переносной CPU/OpenCL-майнер к локальной ноде. Он не начинает майнинг, пока вы не введёте команду start и не подтвердите адрес.</p></div>
+            </div>
+            <div class="step-body">
+              <div class="choice-row">
+                <a class="choice" href="https://github.com/TheTimkol/geocoin-portable-miner" target="_blank" rel="noopener noreferrer">Открыть мой майнер на GitHub ↗</a>
+                <a class="choice" href="https://github.com/TheTimkol/geocoin-portable-miner#build" target="_blank" rel="noopener noreferrer">Как собрать программу ↗</a>
+              </div>
+              <div class="substep"><span class="check-icon">1</span><span>Для сборки нужны <strong>JDK 21+</strong> и <strong>Maven 3.9+</strong>. В папке проекта запустите <span class="inline-code">scripts\build.cmd</span>, затем <span class="inline-code">run.cmd</span>. Если готовый комплект опубликован в Releases, используйте его.</span></div>
+              <div class="cmd-label"><span>Параметры файла config.properties</span></div>
+              <div class="codebox"><pre><code data-code="miner-config">node.url=http://127.0.0.1:3033/
+node.username=miner
+mining.address=ВАШ_GEOCOIN_АДРЕС
+mining.threads=1
+limits.cpu-percent=35
+gpu.enabled=false
+gpu.devices=</code></pre><button class="copy-btn" type="button" data-copy="miner-config"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.7"/></svg>Копировать</button></div>
+              <div class="substep"><span class="check-icon">2</span><span>Скопируйте <span class="inline-code">config.example.properties</span> в <span class="inline-code">config.properties</span>. Укажите адрес награды и имя <span class="inline-code">miner</span>. Создайте рядом файл <span class="inline-code">rpc-miner.pass</span> с тем же паролем miner, что задан ноде. Если файла нет, программа создаст пустой и попросит заполнить его.</span></div>
+              <div class="cmd-label"><span>Запуск и управление</span></div>
+              <div class="codebox"><pre><code data-code="miner-run">.\run.cmd
+start
+status
+stop</code></pre><button class="copy-btn" type="button" data-copy="miner-run"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.7"/></svg>Копировать</button></div>
+              <div class="substep"><span class="check-icon">3</span><span>После <span class="inline-code">start</span> подтвердите свой адрес, введя <span class="inline-code">YES</span>. Команда <span class="inline-code">status</span> покажет скорость, <span class="inline-code">stop</span> завершит майнинг.</span></div>
+              <div class="tip">Майнинг использует процессор и может повышать нагрев и расход энергии. Начните с 1 потока и небольшого лимита CPU. Доход не гарантирован.</div>
+              <details>
+                <summary>У меня видеокарта</summary>
+                <p class="substep"><span class="check-icon">i</span><span>Ваш майнер использует <strong>OpenCL</strong> (видеокарты NVIDIA, AMD и Intel с подходящим драйвером). Запустите программу с <span class="inline-code">gpu.enabled=false</span>, введите <span class="inline-code">gpu devices</span>, впишите найденные ID в <span class="inline-code">gpu.devices</span>, включите <span class="inline-code">gpu.enabled=true</span> и перезапустите программу. При необходимости задайте умеренный <span class="inline-code">limits.gpu-percent</span>.</span></p>
+              </details>
+              <label class="checkline"><input type="checkbox" data-check="step-5"><span class="checkbox"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Майнер подключён, запуск подтверждён</span></label>
+            </div>
+          </article>
+        </section>
+
+        <div class="success-card">
+          <div class="success-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m5 12 4.2 4.2L19 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><strong>Готово. Ваша нода и майнер работают отдельно</strong><p>Для остановки сначала завершите CPU/GPU-майнер, затем корректно остановите ноду. Состояние чек-листа можно сбросить внизу страницы.</p></div>
+          <a href="https://github.com/NoemaCrypt/GeoCoin/blob/main/docs/rpc/MINING_RU.md" target="_blank" rel="noopener noreferrer">Справка по майнингу ↗</a>
+        </div>
+
+        <section class="resource-panel" aria-label="Ссылки и авторство">
+          <div class="resource-card">
+            <h3>Официальные материалы</h3>
+            <div class="resource-list">
+              <a href="https://github.com/NoemaCrypt/GeoCoin" target="_blank" rel="noopener noreferrer"><span>Репозиторий GeoCoin</span><span>↗</span></a>
+              <a href="https://github.com/NoemaCrypt/GeoCoin/releases" target="_blank" rel="noopener noreferrer"><span>Официальные релизы</span><span>↗</span></a>
+              <a href="https://github.com/NoemaCrypt/GeoCoin/blob/main/docs/build-and-run.md" target="_blank" rel="noopener noreferrer"><span>Сборка и запуск</span><span>↗</span></a>
+              <a href="https://github.com/NoemaCrypt/GeoCoin/blob/main/docs/rpc/MINING_RU.md" target="_blank" rel="noopener noreferrer"><span>RPC-майнинг</span><span>↗</span></a>
+              <a href="https://github.com/TheTimkol/geocoin-portable-miner" target="_blank" rel="noopener noreferrer"><span>Portable Miner</span><span>↗</span></a>
+              <a href="https://github.com/TheTimkol/geocoin-portable-miner#readme" target="_blank" rel="noopener noreferrer"><span>Инструкция к майнеру</span><span>↗</span></a>
+            </div>
+          </div>
+          <div class="credit-card">
+            <div class="credit-label">Автор оригинального проекта</div>
+            <strong>NoemaCrypt</strong>
+            <a href="https://github.com/NoemaCrypt/GeoCoin" target="_blank" rel="noopener noreferrer">GeoCoin на GitHub ↗</a>
+            <div class="credit-divider"></div>
+            <div class="credit-label">Редистрибьютор</div>
+            <strong class="distributor-name">TheTimkol</strong>
+            <a class="distributor-link" href="https://t.me/TheTimkol" target="_blank" rel="noopener noreferrer">Написать в Telegram ↗</a>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span>Неофициальный гид с авторской адаптацией оформления. Оригинальный проект GeoCoin — <a href="https://github.com/NoemaCrypt/GeoCoin" target="_blank" rel="noopener noreferrer">NoemaCrypt</a>.</span>
+          <a href="#top" id="reset-progress">Сбросить отметки</a>
+        </footer>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = "geocoin-quick-start-v1";
+      const state = { checked: {} };
+      const checks = [...document.querySelectorAll("[data-check]")];
+      const navLinks = [...document.querySelectorAll("[data-nav]")];
+      const toast = document.getElementById("toast");
+      let toastTimer;
+
+      function readSaved() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+          if (saved.checked && typeof saved.checked === "object") state.checked = saved.checked;
+        } catch (_) {}
+      }
+      function save() {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+      }
+      function updateProgress() {
+        const count = checks.filter(input => Boolean(state.checked[input.dataset.check])).length;
+        document.getElementById("progress-count").textContent = `${count} / ${checks.length}`;
+        document.getElementById("progress-fill").style.width = `${(count / checks.length) * 100}%`;
+        checks.forEach(input => {
+          const card = input.closest(".step-card");
+          const link = document.querySelector(`[data-nav="${input.dataset.check}"]`);
+          const isDone = Boolean(state.checked[input.dataset.check]);
+          card.classList.toggle("complete", isDone);
+          if (link) link.classList.toggle("done", isDone);
+        });
+      }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+      }
+      readSaved();
+      checks.forEach(input => {
+        input.checked = Boolean(state.checked[input.dataset.check]);
+        input.addEventListener("change", () => {
+          state.checked[input.dataset.check] = input.checked;
+          save();
+          updateProgress();
+        });
+      });
+      updateProgress();
+      document.querySelectorAll("[data-copy]").forEach(button => {
+        button.addEventListener("click", async () => {
+          const target = document.querySelector(`[data-code="${button.dataset.copy}"]`);
+          const text = target ? target.textContent : "";
+          try {
+            await navigator.clipboard.writeText(text);
+          } catch (_) {
+            const field = document.createElement("textarea");
+            field.value = text;
+            field.style.position = "fixed";
+            field.style.opacity = "0";
+            document.body.appendChild(field);
+            field.select();
+            document.execCommand("copy");
+            field.remove();
+          }
+          showToast("Текст скопирован");
+        });
+      });
+      document.getElementById("reset-progress").addEventListener("click", event => {
+        event.preventDefault();
+        state.checked = {};
+        checks.forEach(input => { input.checked = false; });
+        save();
+        updateProgress();
+        showToast("Отметки сброшены");
+      });
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          navLinks.forEach(link => link.classList.toggle("active", link.hash === `#${entry.target.id}`));
+        });
+      }, { rootMargin: "-18% 0px -68% 0px" });
+      document.querySelectorAll(".step-card").forEach(card => observer.observe(card));
+    })();
+  </script>
+</body>
+</html>
