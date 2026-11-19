@@ -1,0 +1,5 @@
+target/
+config.properties
+rpc-miner.pass
+*.log
+PROJECT_PLAN.md
